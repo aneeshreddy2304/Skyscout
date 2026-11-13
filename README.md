@@ -21,7 +21,38 @@ Flight-fare monitoring requires coordinating multiple providers and converting p
 
 ## System architecture
 
-![Skyscout system architecture](docs/architecture-overview.svg)
+```mermaid
+flowchart LR
+    Coordinator["main.py<br/>workflow coordinator"]
+
+    subgraph DestinationData["Destination data"]
+        DataManager["DataManager"]
+        Sheety["Sheety API<br/>destinations and price thresholds"]
+    end
+
+    subgraph FlightLookup["Flight discovery"]
+        FlightSearch["FlightSearch"]
+        LocationAPI["Tequila location API"]
+        SearchAPI["Tequila flight-search API"]
+        FlightData["FlightData<br/>normalized offer"]
+    end
+
+    subgraph Delivery["Alert delivery"]
+        Compare{"Offer below<br/>stored threshold?"}
+        Notification["NotificationManager"]
+        Twilio["Twilio SMS API"]
+    end
+
+    Coordinator --> DataManager
+    DataManager <--> Sheety
+    Coordinator --> FlightSearch
+    FlightSearch --> LocationAPI
+    FlightSearch --> SearchAPI
+    SearchAPI --> FlightData --> Coordinator
+    Coordinator --> Compare
+    Compare -->|yes| Notification --> Twilio
+    Compare -->|no| Coordinator
+```
 
 ### How the workflow operates
 
