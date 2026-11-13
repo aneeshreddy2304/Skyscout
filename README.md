@@ -1,38 +1,64 @@
-<p align="center"><img src="docs/assets/banner.svg" alt="Skyscout — Watch routes. Compare fares. Prepare the alert." width="100%"></p>
+# Skyscout
 
-<p align="center"><img src="docs/assets/badges/python.svg" alt="python" height="28"> <img src="docs/assets/badges/requests.svg" alt="requests" height="28"> <img src="docs/assets/badges/twilio.svg" alt="twilio" height="28"></p>
-
-<p align="center"><strong>A modular Python workflow that checks flight offers against destination price thresholds and prepares SMS alerts.</strong></p>
+**Flight-fare monitoring and notification workflow**
 
 ## Overview
 
-A modular Python workflow that checks flight offers against destination price thresholds and prepares SMS alerts.
+Skyscout is a Python application that reads travel destinations and price targets from a remote sheet, checks flight offers through an external flight-search provider, and sends SMS notifications when it finds offers below the configured thresholds. It separates destination management, flight retrieval, flight-data representation, and notifications into modules.
 
 ### Why it matters
 
-Skyscout demonstrates clean API orchestration across a destination sheet, flight search, normalized offer data, and notification delivery.
+Flight-fare monitoring requires coordinating multiple providers and converting provider responses into actionable alerts. Skyscout shows how a small application can combine remote configuration, travel search, filtering, and messaging.
 
-## Key features
+## Key capabilities
 
-- Destination and threshold management through Sheety
-- Airport-code lookup and flight-offer search
-- Normalized flight data objects
-- Twilio-backed notification delivery
+- Loads destinations and desired prices from a remote sheet using Sheety.
+- Resolves destination IATA codes when they are missing.
+- Requests flight-search data for configured routes and travel windows.
+- Compares returned fares with destination-specific price targets.
+- Formats flight data for use in notification messages.
+- Uses Twilio for SMS alerts when qualifying offers are found.
 
-## Architecture
+## System architecture
 
-```mermaid
-flowchart LR
-  A[Destination sheet] --> B[DataManager]
-  B --> C[FlightSearch]
-  C --> D{Below threshold?}
-  D -->|Yes| E[Twilio alert]
-```
+![Skyscout system architecture](docs/architecture-overview.svg)
+
+### How the workflow operates
+
+The main script initializes the sheet, flight-search, and notification clients. It retrieves the destinations, fills in missing airport codes, and requests offers over the configured travel window. The matching logic checks prices against the sheet-defined threshold and invokes the notification adapter for a qualifying itinerary.
+
+Provider credentials, sender numbers, and recipient configuration are external integration concerns. Test with your own authorized provider accounts before enabling remote updates or text messages.
 
 ## Technology stack
 
-**python** · **requests** · **twilio**
+| Technology | Purpose |
+| --- | --- |
+| **Python** | Application orchestration and data models |
+| **Requests / HTTP APIs** | External service requests |
+| **Sheety** | Destination and threshold storage |
+| **Flight-search API** | Airport lookup and flight availability data |
+| **Twilio** | SMS delivery |
+
+## Repository structure
+
+```text
+main.py                  Orchestration and price checks
+data_manager.py          Destination-sheet integration
+flight_search.py         Airport-code and flight-search integration
+flight_data.py           Flight data representation
+notification_manager.py  SMS delivery interface
+```
 
 ## Getting started
 
-Create an isolated Python environment, install the imported packages, and provide your own authorized provider configuration. Review `main.py` before running because it can update remote data and send messages.
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install requests twilio
+# Review service settings and configure authorized API access.
+python main.py
+```
+
+## Notes and prerequisites
+
+The script may update the remote destination sheet and send SMS messages. Review its integration settings before execution. An earlier audit found credential-like values in repository history; the separate security work should be completed and any exposed credentials rotated. Avoid publishing live keys or phone numbers.
