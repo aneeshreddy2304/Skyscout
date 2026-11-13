@@ -1,14 +1,17 @@
+import os
 from twilio.rest import Client
 
-TWILIO_SID = "Your_ID"
-TWILIO_AUTH_TOKEN = "Your_Token"
-TWILIO_VIRTUAL_NUMBER = "Your_Virtual_Twilio_Number"
-TWILIO_VERIFIED_NUMBER = "Your_Mobile_Number"
+TWILIO_SID = os.environ.get("TWILIO_SID", "")
+TWILIO_AUTH_TOKEN = os.environ.get("TWILIO_AUTH_TOKEN", "")
+TWILIO_VIRTUAL_NUMBER = os.environ.get("TWILIO_VIRTUAL_NUMBER", "")
+TWILIO_VERIFIED_NUMBER = os.environ.get("TWILIO_VERIFIED_NUMBER", "")
 
 
 class NotificationManager:
 
     def __init__(self):
+        if not all((TWILIO_SID, TWILIO_AUTH_TOKEN, TWILIO_VIRTUAL_NUMBER, TWILIO_VERIFIED_NUMBER)):
+            raise RuntimeError("Configure all TWILIO_* environment variables before sending SMS")
         self.client = Client(TWILIO_SID, TWILIO_AUTH_TOKEN)
 
     def send_sms(self, message):

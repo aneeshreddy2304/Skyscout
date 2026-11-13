@@ -1,7 +1,8 @@
+import os
 from pprint import pprint
 import requests
 
-SHEETY_PRICES_ENDPOINT = "https://api.sheety.co/a552ba6fed4e9da316a5f835a59c27d4/flightDeals/prices"
+SHEETY_PRICES_ENDPOINT = os.environ.get("SHEETY_PRICES_ENDPOINT", "")
 
 
 class DataManager:
@@ -10,12 +11,16 @@ class DataManager:
         self.destination_data = {}
 
     def get_destination_data(self):
-        response = requests.get(url="https://api.sheety.co/a552ba6fed4e9da316a5f835a59c27d4/flightDeals/prices")
+        if not SHEETY_PRICES_ENDPOINT:
+            raise RuntimeError("Set SHEETY_PRICES_ENDPOINT in the process environment")
+        response = requests.get(url=SHEETY_PRICES_ENDPOINT)
         data = response.json()
         self.destination_data = data["prices"]
         return self.destination_data
 
     def update_destination_codes(self):
+        if not SHEETY_PRICES_ENDPOINT:
+            raise RuntimeError("Set SHEETY_PRICES_ENDPOINT in the process environment")
         for city in self.destination_data:
             new_data = {
                 "price": {

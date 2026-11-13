@@ -1,13 +1,16 @@
+import os
 import requests
 from flight_data import FlightData
 
 TEQUILA_ENDPOINT = "https://tequila-api.kiwi.com"
-TEQUILA_API_KEY = "adUzelo0znpnIgqpwZ9RY3ErjPTcetcd"
+TEQUILA_API_KEY = os.environ.get("TEQUILA_API_KEY", "")
 
 
 class FlightSearch:
 
     def get_destination_code(self, city_name):
+        if not TEQUILA_API_KEY:
+            raise RuntimeError("Set TEQUILA_API_KEY in the process environment")
         location_endpoint = f"{TEQUILA_ENDPOINT}/locations/query"
         headers = {"apikey": TEQUILA_API_KEY}
         query = {"term": city_name, "location_types": "city"}
@@ -17,6 +20,8 @@ class FlightSearch:
         return code
 
     def check_flights(self, origin_city_code, destination_city_code, from_time, to_time):
+        if not TEQUILA_API_KEY:
+            raise RuntimeError("Set TEQUILA_API_KEY in the process environment")
         headers = {"apikey": TEQUILA_API_KEY}
         query = {
             "fly_from": origin_city_code,
